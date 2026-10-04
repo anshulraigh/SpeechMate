@@ -9,13 +9,22 @@ import { buildAiCoachProfile, findBestPair, normalizeUserProfile } from './match
 const { RtcRole, RtcTokenBuilder } = agoraAccessToken;
 
 const server = createServer((req, res) => {
-  if (req.url === '/health') {
+  const requestUrl = new URL(req.url ?? '/', 'http://localhost');
+  const pathname = requestUrl.pathname;
+
+  if (pathname === '/' || pathname === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, service: 'speakmate-backend' }));
+    res.end(
+      JSON.stringify({
+        ok: true,
+        service: 'speakmate-backend',
+        routes: ['/health', '/api/match', '/api/token', '/api/ai-session'],
+      }),
+    );
     return;
   }
 
-  if (req.url === '/api/match' && req.method === 'POST') {
+  if (pathname === '/api/match' && req.method === 'POST') {
     let body = '';
 
     req.on('data', (chunk) => {
@@ -75,7 +84,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  if (req.url === '/api/ai-session' && req.method === 'GET') {
+  if (pathname === '/api/ai-session' && req.method === 'GET') {
     const appId = process.env.AGORA_APP_ID;
     const appCertificate = process.env.AGORA_APP_CERTIFICATE;
     const channelName = `speakmate-ai-${Date.now()}`;
@@ -124,7 +133,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  if (req.url === '/api/token' && req.method === 'POST') {
+  if (pathname === '/api/token' && req.method === 'POST') {
     let body = '';
 
     req.on('data', (chunk) => {
